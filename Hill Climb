@@ -1,0 +1,97 @@
+import matplotlib.pyplot as plt
+import time
+
+class TowerOfHanoiState:
+    def __init__(self, pegs):
+        self.pegs = pegs
+
+    def __str__(self):
+        return f"Pegs: {self.pegs}"
+
+    def get_heuristic(self):
+        goal_state = [['d', 'c', 'b', 'a'], [], []]
+        heuristic = 0
+        for i in range(3):
+            peg = self.pegs[i]
+            goal_peg = goal_state[i]
+            for j in range(min(len(peg), len(goal_peg))):
+                if peg[j] == goal_peg[j]:
+                    heuristic += 1
+                else:
+                    heuristic -= 1
+        return heuristic
+
+    def generate_successors(self):
+        successors = []
+        for i in range(3):
+            if len(self.pegs[i]) > 0:
+                disk = self.pegs[i][-1]
+                for j in range(3):
+                    if i != j and (len(self.pegs[j]) == 0 or self.pegs[j][-1] > disk):
+                        new_pegs = [list(peg) for peg in self.pegs]
+                        new_pegs[i].pop()
+                        new_pegs[j].append(disk)
+                        successors.append(TowerOfHanoiState(new_pegs))
+        return successors
+
+
+# Helper to map disk labels to sizes
+disk_size = {'a': 1, 'b': 2, 'c': 3, 'd': 4}
+
+def draw_state(state, title):
+    plt.figure(figsize=(6, 4))
+    for peg_index, peg in enumerate(state.pegs):
+        x = [peg_index] * len(peg)
+        y = list(range(len(peg)))
+        sizes = [disk_size[disk] for disk in reversed(peg)]
+        plt.barh(y, sizes, left=[peg_index - s / 2 for s in sizes], height=0.8)
+    plt.title(title)
+    plt.xlabel("Pegs")
+    plt.ylabel("Disks (bottom to top)")
+    plt.xlim(-1, 3)
+    plt.ylim(-1, 5)
+    plt.grid(True)
+    plt.pause(0.8)
+    plt.clf()
+
+
+def hill_climbing(initial_state):
+    current_state = initial_state
+    print("Initial State:")
+    print(current_state)
+    print(f"Heuristic: {current_state.get_heuristic()}")
+    draw_state(current_state, "Initial State")
+
+    goal_state = [['d', 'c', 'b', 'a'], [], []]
+
+    while True:
+        successors = current_state.generate_successors()
+        if not successors:
+            break
+
+        next_state = max(successors, key=lambda state: state.get_heuristic())
+        print(f"\nMove to next state:")
+        print(next_state)
+        print(f"Heuristic: {next_state.get_heuristic()}")
+        draw_state(next_state, f"Heuristic: {next_state.get_heuristic()}")
+
+        if next_state.get_heuristic() <= current_state.get_heuristic():
+            break
+
+        current_state = next_state
+
+    return current_state
+
+
+# Run the algorithm
+initial_pegs = [['a', 'd', 'c', 'b'], [], []]
+initial_state = TowerOfHanoiState(initial_pegs)
+
+plt.ion()  # Interactive mode ON for animation
+goal_state = hill_climbing(initial_state)
+plt.ioff()  # Turn off interactive mode
+plt.show()
+
+print("\nGoal State Reached:")
+print(goal_state)
+print(f"Heuristic: {goal_state.get_heuristic()}")
