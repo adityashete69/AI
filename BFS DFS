@@ -1,0 +1,71 @@
+from collections import deque
+
+# Packet class
+class Packet:
+    def __init__(self, source, destination):
+        self.source_ip = source
+        self.destination_ip = destination
+
+# BFS function to find the BFS sequence
+def bfs(start, adj, packet, ip_addresses):
+    bfs_seq = []
+    visited = [False] * len(ip_addresses)  # To track visited nodes
+    q = deque([start])
+    visited[start] = True
+
+    while q:
+        current = q.popleft()
+        bfs_seq.append(f"Node {current + 1} ({ip_addresses[current]})")  # Adding node number to output
+
+        for next_node in adj[current]:
+            next_idx = int(next_node)  # Converting string to int index
+            if not visited[next_idx]:
+                visited[next_idx] = True
+                q.append(next_idx)
+
+    return bfs_seq
+
+# DFS helper function
+def dfs_helper(node, adj, visited, packet, dfs_seq, ip_addresses):
+    visited[node] = True
+    dfs_seq.append(f"Node {node + 1} ({ip_addresses[node]})")  # Adding node number to output
+
+    for next_node in adj[node]:
+        next_idx = int(next_node)  # Converting string to int index
+        if not visited[next_idx]:
+            dfs_helper(next_idx, adj, visited, packet, dfs_seq, ip_addresses)
+
+# DFS function to find the DFS sequence
+def dfs(start, adj, packet, ip_addresses):
+    dfs_seq = []
+    visited = [False] * len(ip_addresses)  # Initialize visited array
+    dfs_helper(start, adj, visited, packet, dfs_seq, ip_addresses)
+    return dfs_seq
+
+def main():
+    ip_addresses = ["A", "B", "C", "D", "E"]
+    adj = [[] for _ in range(5)]  # Adjacency list (size 5)
+    packet = Packet("192.168.0.1", "192.168.0.5")  # Example packet
+
+    # Build the graph (adjacency list) with indices
+    adj[0].append("1")
+    adj[0].append("2")
+    adj[1].append("0")
+    adj[1].append("3")
+    adj[2].append("0")
+    adj[3].append("1")
+    adj[3].append("4")
+    adj[4].append("3")
+
+    # Perform BFS and DFS
+    bfs_result = bfs(0, adj, packet, ip_addresses)
+    dfs_result = dfs(0, adj, packet, ip_addresses)
+
+    # Output the BFS result
+    print("BFS Sequence:", " -> ".join(bfs_result))
+
+    # Output the DFS result
+    print("DFS Sequence:", " -> ".join(dfs_result))
+
+if __name__ == "__main__":
+    main()
